@@ -4,7 +4,10 @@ function JSMatrix(){
 		var _m = null;
 		var _d = null;
 
-		if(args.m != null){ _m = args.m; }
+		if(args.m != null){ 
+			_m = args.m; 
+			_d = args.depth;
+		}
 		else if(args.depth != null && args.depth > 0){ 
 			_d = args.depth; 
 			init(_d); 
@@ -64,138 +67,105 @@ function JSMatrix(){
 		return a;
 	};
 
-	var Matrix3 = function(m){
-		if(!m){
-			MatrixN.call(this, {
-				m: null,
-				depth: 3
-			});
-		} else {
-			MatrixN.call(this, {
-				m: m,
-				depth: 3
-			});
+	MatrixN.prototype.MV = function(v1, v2){
+		var r = 0;
+		for(var i = 0; i < v1.length; i++){
+			r += (v1[i] * v2[i]);
 		}
+		return r;
 	};
 
-	Matrix3.prototype = Object.create(MatrixN.prototype);
-	Matrix3.prototype.constructor = Matrix3;
+	var Matrix4 = function(matrix){
+		var _mm = null;
 
-	var Matrix4 = function(m){
-		if(!m){
+		if(!matrix){
 			MatrixN.call(this, {
 				m: null,
 				depth: 4
 			});
 		} else {
 			MatrixN.call(this, {
-				m: m,
+				m: matrix,
 				depth: 4
 			});
 		}
-	};
+
+		this.getModelMatrix = function(){ 
+			return _mm; 
+		};
+		this.setModelMatrix = function(mm){
+			if(!_mm){
+				_mm = mm; 
+			} else {
+				_mm = _mm.MM4(mm);
+			}
+		}
+	};	
 
 	Matrix4.prototype = Object.create(MatrixN.prototype);
 	Matrix4.prototype.constructor = Matrix4;
 
-	JSMatrix.prototype.M4 = function(){ return new Matrix4(null); }
-	JSMatrix.prototype.M3 = function(){ return new Matrix3(null); }
-
-	var Helper = {
-		Slice: function(a, from, to){
-			var t = [];
-			for(var i = 0; i < (to - from); i++){
-				t.push(a[from + i]);
-			}
-			return new Float32Array(t);
-		},
-		MV3: function(v1, v2){
-			return 
-				(v1[0] * v2[0]) +
-				(v1[1] * v2[1]) +
-				(v1[2] * v2[2]);
-		},
-		MV4: function(v1, v2){
-			return
-				(v1[0] * v2[0]) +
-				(v1[1] * v2[1]) +
-				(v1[2] * v2[2]) +
-				(v1[3] * v2[3]);
-		},
-		MM3: function(m1, m2){
-			return new Float32Array([
-				Helper.MV3(m1.getRow(0), m2.getCol(0)), Helper.MV3(m1.getRow(0), m2.getCol(1)), Helper.MV3(m1.getRow(0), m2.getCol(2)),
-				Helper.MV3(m1.getRow(1), m2.getCol(0)), Helper.MV3(m1.getRow(1), m2.getCol(1)), Helper.MV3(m1.getRow(1), m2.getCol(2)),
-				Helper.MV3(m1.getRow(2), m2.getCol(0)), Helper.MV3(m1.getRow(2), m2.getCol(1)), Helper.MV3(m1.getRow(2), m2.getCol(2))
-			]);
-		}
+	Matrix4.prototype.MM4 = function(m) {
+		var aug = new Float32Array([
+						this.MV(this.getRow(0), m.getCol(0)), this.MV(this.getRow(0), m.getCol(1)), this.MV(this.getRow(0), m.getCol(2)), this.MV(this.getRow(0), m.getCol(3)),
+						this.MV(this.getRow(1), m.getCol(0)), this.MV(this.getRow(1), m.getCol(1)), this.MV(this.getRow(1), m.getCol(2)), this.MV(this.getRow(1), m.getCol(3)),
+						this.MV(this.getRow(2), m.getCol(0)), this.MV(this.getRow(2), m.getCol(1)), this.MV(this.getRow(2), m.getCol(2)), this.MV(this.getRow(2), m.getCol(3)),
+						this.MV(this.getRow(3), m.getCol(0)), this.MV(this.getRow(3), m.getCol(1)), this.MV(this.getRow(3), m.getCol(2)), this.MV(this.getRow(3), m.getCol(3))]);
+		return new Matrix4(aug);
 	};
 
-	function TranslateM(m, x, y, z){
-		return new Float32Array([
+	Matrix4.prototype.Translate = function(args){
+		var aug = new Float32Array([
 			1.0, 0.0, 0.0, 0.0,
 			0.0, 1.0, 0.0, 0.0,
 			0.0, 0.0, 1.0, 0.0,
-			(x * 1.0), (y * 1.0), (z * 1.0), 1
+			(args.x * 1.0), (args.y * 1.0), (args.z * 1.0), 1.0
 		]);
+		this.setModelMatrix(new Matrix4(aug));
+		return this;
 	};
-	
-	function RotateM(type, n){
-		switch(type){
-			case Rotate.RADIAN:
-				return new Float32Array([
-					Math.cos(n), Math.sin(n), 0.0, 0.0,
-					-Math.sin(n), Math.cos(n), 0.0, 0.0,
+
+	Matrix4.prototype.Rotate = function(args){
+		switch(args.type){
+			case 'RADIAN':
+				var aug = new Float32Array([
+					Math.cos(args.value), Math.sin(args.value), 0.0, 0.0,
+					-Math.sin(args.value), Math.cos(args.value), 0.0, 0.0,
 					0.0, 0.0, 1.0, 0.0,
 					0.0, 0.0, 0.0, 1.0
 				]);
+				this.setModelMatrix(new Matrix4(aug));
+				return this;
 				break;
-			case Rotate.DEGREE:
-				var r = (Math.PI * n) / 180;
-				return new Float32Array([
+			case 'DEGREE':
+				var r = (Math.PI * args.value) / 180;
+				var aug = new Float32Array([
 					Math.cos(r), Math.sin(r), 0.0, 0.0,
 					-Math.sin(r), Math.cos(r), 0.0, 0.0,
 					0.0, 0.0, 1.0, 0.0,
 					0.0, 0.0, 0.0, 1.0
 				]);
+				this.setModelMatrix(new Matrix4(aug));
+				return this;
 				break;
 			default:
-				console.log("Invalid rotation type");
-				return null;
+				console.log("Please specify a valid rotation type");
 				break;
 		}
 	};
 
-	function ScaleM(x, y, z){
-		if(typeof d === 'number'){
-			return new Float32Array([
-				(s * 1.0), 0.0, 0.0, 0.0,
-				0.0, (s * 1.0), 0.0, 0.0,
-				0.0, 0.0, (s * 1.0), 0.0,
-				0.0, 0.0, 0.0, 1.0
-			]);
-		} else {
-			console.log("Must pass a valid number to ScaleM");
-			return null;
-		}
-	};
-
-	this.I = function(){
-		return new Float32Array([
-			1.0, 0.0, 0.0, 0.0,
-			0.0, 1.0, 0.0, 0.0,
-			0.0, 0.0, 1.0, 0.0,
+	Matrix4.prototype.Scale = function(amount){
+		var aug = new Float32Array([
+			(amount * 1.0), 0.0, 0.0, 0.0,
+			0.0, (amount * 1.0), 0.0, 0.0,
+			0.0, 0.0, (amount * 1.0), 0.0,
 			0.0, 0.0, 0.0, 1.0
 		]);
+		this.setModelMatrix(new Matrix4(aug));
+		return this;
 	};
 
-	this.E = function(){ return new Float32Array(16); };
-
-	this.TranslateX = function(x){ return typeof x === 'number' ? TranslateM(null, x, 1.0, 1.0) : null; };
-	this.TranslateY = function(y){ return typeof y === 'number' ? TranslateM(null, 1.0, y, 1.0) : null; };
-	this.TranslateZ = function(z){ return typeof z === 'number' ? TranslateM(null, 1.0, 1.0, z) : null; };
-	this.TranslateXY = function(x, y){ TranslateM(x, y, 1.0); };
-	this.TranslateXYZ = function(x, y, z){ TranslateM(x, y, z); };
+	JSMatrix.prototype.M4 = function(matrix){ return new Matrix4(matrix); }
 
 }
 
