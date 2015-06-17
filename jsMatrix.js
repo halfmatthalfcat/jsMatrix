@@ -22,7 +22,8 @@ function JSMatrix(){
 			_m = new Float32Array(a);
 		};
 
-		this.getGraph = function() { return _m; }
+		this.getMatrix = function() { return _m; }
+		this.setMatrix = function(m) { _m = m; }
 		this.getDepth = function() { return _d; }
 	};
 
@@ -37,9 +38,9 @@ function JSMatrix(){
 		return s;
 	};
 
-	MatrixN.prototype.getMatrix = function() { 
-		return this.getGraph(); 
-	};
+	MatrixN.prototype.getMatrix = function() { return this.getMatrix(); };
+	MatrixN.prototype.setMatrix = function(m) { this.setMatrix(m); return this;}
+	MatrixN.prototype.getDepth = function() { return this.getDepth(); };
 	
 	//zero based
 	MatrixN.prototype.getRow = function(n) {
@@ -76,30 +77,19 @@ function JSMatrix(){
 	};
 
 	var Matrix4 = function(matrix){
-		var _mm = null;
 
-		if(!matrix){
-			MatrixN.call(this, {
-				m: null,
-				depth: 4
-			});
-		} else {
+		if(matrix instanceof Float32Array){
 			MatrixN.call(this, {
 				m: matrix,
 				depth: 4
 			});
+		} else {
+			MatrixN.call(this, {
+				m: null,
+				depth: 4
+			});
 		}
 
-		this.getModelMatrix = function(){ 
-			return _mm; 
-		};
-		this.setModelMatrix = function(mm){
-			if(!_mm){
-				_mm = mm; 
-			} else {
-				_mm = _mm.MM4(mm);
-			}
-		}
 	};	
 
 	Matrix4.prototype = Object.create(MatrixN.prototype);
@@ -111,48 +101,44 @@ function JSMatrix(){
 						this.MV(this.getRow(1), m.getCol(0)), this.MV(this.getRow(1), m.getCol(1)), this.MV(this.getRow(1), m.getCol(2)), this.MV(this.getRow(1), m.getCol(3)),
 						this.MV(this.getRow(2), m.getCol(0)), this.MV(this.getRow(2), m.getCol(1)), this.MV(this.getRow(2), m.getCol(2)), this.MV(this.getRow(2), m.getCol(3)),
 						this.MV(this.getRow(3), m.getCol(0)), this.MV(this.getRow(3), m.getCol(1)), this.MV(this.getRow(3), m.getCol(2)), this.MV(this.getRow(3), m.getCol(3))]);
-		return new Matrix4(aug);
+		return aug;
 	};
 
-	Matrix4.prototype.Translate = function(args){
+	Matrix4.prototype.Translate = function(x, y, z){
+		//TODO: supposidly, WebGL prefers column major, however when setting this up as
+		//column major, WebGL is going freaky...need to investigate further
 		var aug = new Float32Array([
-			1.0, 0.0, 0.0, 0.0,
-			0.0, 1.0, 0.0, 0.0,
-			0.0, 0.0, 1.0, 0.0,
-			(args.x * 1.0), (args.y * 1.0), (args.z * 1.0), 1.0
+			1.0, 0.0, 0.0, (x * 1.0),
+			0.0, 1.0, 0.0, (y * 1.0),
+			0.0, 0.0, 1.0, (z * 1.0),
+			0.0, 0.0, 0.0, 1.0
 		]);
-		this.setModelMatrix(new Matrix4(aug));
+		this.setMatrix(this.MM4(new Matrix4(aug)));
 		return this;
 	};
 
-	Matrix4.prototype.Rotate = function(args){
-		switch(args.type){
-			case 'RADIAN':
-				var aug = new Float32Array([
-					Math.cos(args.value), Math.sin(args.value), 0.0, 0.0,
-					-Math.sin(args.value), Math.cos(args.value), 0.0, 0.0,
-					0.0, 0.0, 1.0, 0.0,
-					0.0, 0.0, 0.0, 1.0
-				]);
-				this.setModelMatrix(new Matrix4(aug));
-				return this;
-				break;
-			case 'DEGREE':
-				var r = (Math.PI * args.value) / 180;
-				var aug = new Float32Array([
-					Math.cos(r), Math.sin(r), 0.0, 0.0,
-					-Math.sin(r), Math.cos(r), 0.0, 0.0,
-					0.0, 0.0, 1.0, 0.0,
-					0.0, 0.0, 0.0, 1.0
-				]);
-				this.setModelMatrix(new Matrix4(aug));
-				return this;
-				break;
-			default:
-				console.log("Please specify a valid rotation type");
-				break;
-		}
+	Matrix4.prototype.dRotate = function(degree){
+		var r = (Math.PI * degree) / 180;
+		var aug = new Float32Array([
+			Math.cos(r), Math.sin(r), 0.0, 0.0,
+			-Math.sin(r), Math.cos(r), 0.0, 0.0,
+			0.0, 0.0, 1.0, 0.0,
+			0.0, 0.0, 0.0, 1.0
+		]);
+		this.setMatrix(this.MM4(new Matrix4(aug)));
+		return this;
 	};
+
+	Matrix4.prototype.rRotate = function(radian){
+		var aug = new Float32Array([
+			Math.cos(radian), Math.sin(radian), 0.0, 0.0,
+			-Math.sin(radian), Math.cos(radian), 0.0, 0.0,
+			0.0, 0.0, 1.0, 0.0,
+			0.0, 0.0, 0.0, 1.0
+		]);
+		this.setMatrix(this.MM4(new Matrix4(aug)));
+		return this;
+	}
 
 	Matrix4.prototype.Scale = function(amount){
 		var aug = new Float32Array([
@@ -161,7 +147,7 @@ function JSMatrix(){
 			0.0, 0.0, (amount * 1.0), 0.0,
 			0.0, 0.0, 0.0, 1.0
 		]);
-		this.setModelMatrix(new Matrix4(aug));
+		this.setMatrix(this.MM4(new Matrix4(aug)));
 		return this;
 	};
 
