@@ -14,7 +14,8 @@ You can chain these functions like so to easily create ModelView Matricies:
   ```js
   $M.M4(null)
     .dRotate(90)
-    .Scale(0.5);
+    .Scale(0.5)
+    .getMatrix();
 ```
 
 To Do:
