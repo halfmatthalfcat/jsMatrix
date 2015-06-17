@@ -1,6 +1,8 @@
 # jsMatrix
 Small, lightweight Javascript matrix library
 
+This is mainly used for WebGL matrix transformations but will be abstracted out to do matrix math on n-sized matricies
+
 Create a new Matrix4 identity matrix: `$M.M4(null);`
 
 The library currently allows you to:
