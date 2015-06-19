@@ -1,0 +1,9 @@
+{
+	"name":"jsMatrix",
+	"description":"Small, lightweight matrix manipulation library",
+	"author":"Matt Oliver",
+	"version":"0.1",
+	"devDependencies": {
+		"grunt":"~0.4.5"
+	}
+}
