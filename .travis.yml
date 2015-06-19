@@ -1,4 +1,4 @@
-language: node-js
-node-js:
+language: node_js
+node_js:
 	- "0.10"
 script: grunt test --verbose --force
