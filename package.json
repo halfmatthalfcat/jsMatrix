@@ -7,6 +7,8 @@
 		"grunt": "0.4.5",
 		"grunt-contrib-qunit": "~0.2.0",
 		"qunit": "~0.5.15",
-		"qunitjs": "~1.11.0"
+	},
+	"scripts": {
+		"test": "grunt test --verbose"
 	}
 }
