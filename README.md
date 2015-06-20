@@ -1,4 +1,5 @@
-# jsMatrix<div style="text-align: right">[![Build Status](https://travis-ci.org/halojedi20/jsMatrix.svg?branch=master)](https://travis-ci.org/halojedi20/jsMatrix)</div>
+# jsMatrix
+<div style="text-align: right">[![Build Status](https://travis-ci.org/halojedi20/jsMatrix.svg?branch=master)](https://travis-ci.org/halojedi20/jsMatrix)</div>
 Small, lightweight Javascript matrix library
 
 This is mainly used for WebGL matrix transformations but will be abstracted out to do matrix math on n-sized matricies
