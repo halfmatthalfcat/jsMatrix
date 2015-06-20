@@ -1,16 +1,18 @@
-function JSMatrix(){
+function jsMatrix(){
 
-	var MatrixN = function(args){
+	function MatrixN(args){
 		var _m = null;
 		var _d = null;
 
-		if(args.m != null){ 
-			_m = args.m; 
-			_d = args.depth;
-		}
-		else if(args.depth != null && args.depth > 0){ 
-			_d = args.depth; 
-			init(_d); 
+		if(args != null){
+			if(args.m != null){ 
+				_m = args.m; 
+				_d = args.depth;
+			}
+			else if(args.depth != null && args.depth > 0){ 
+				_d = args.depth; 
+				init(_d); 
+			}
 		}
 
 		function init(n){
@@ -26,6 +28,8 @@ function JSMatrix(){
 		this.setMatrix = function(m) { _m = m; }
 		this.getDepth = function() { return _d; }
 	};
+
+	MatrixN.prototype.constructor = MatrixN;
 
 	MatrixN.prototype.toString = function() { 
 		var d = this.getDepth();
@@ -76,7 +80,7 @@ function JSMatrix(){
 		return r;
 	};
 
-	var Matrix4 = function(matrix){
+	function Matrix4(matrix){
 
 		if(matrix instanceof Float32Array){
 			MatrixN.call(this, {
@@ -97,10 +101,10 @@ function JSMatrix(){
 
 	Matrix4.prototype.MM4 = function(m) {
 		var aug = new Float32Array([
-						this.MV(this.getRow(0), m.getCol(0)), this.MV(this.getRow(0), m.getCol(1)), this.MV(this.getRow(0), m.getCol(2)), this.MV(this.getRow(0), m.getCol(3)),
-						this.MV(this.getRow(1), m.getCol(0)), this.MV(this.getRow(1), m.getCol(1)), this.MV(this.getRow(1), m.getCol(2)), this.MV(this.getRow(1), m.getCol(3)),
-						this.MV(this.getRow(2), m.getCol(0)), this.MV(this.getRow(2), m.getCol(1)), this.MV(this.getRow(2), m.getCol(2)), this.MV(this.getRow(2), m.getCol(3)),
-						this.MV(this.getRow(3), m.getCol(0)), this.MV(this.getRow(3), m.getCol(1)), this.MV(this.getRow(3), m.getCol(2)), this.MV(this.getRow(3), m.getCol(3))]);
+			this.MV(this.getRow(0), m.getCol(0)), this.MV(this.getRow(0), m.getCol(1)), this.MV(this.getRow(0), m.getCol(2)), this.MV(this.getRow(0), m.getCol(3)),
+			this.MV(this.getRow(1), m.getCol(0)), this.MV(this.getRow(1), m.getCol(1)), this.MV(this.getRow(1), m.getCol(2)), this.MV(this.getRow(1), m.getCol(3)),
+			this.MV(this.getRow(2), m.getCol(0)), this.MV(this.getRow(2), m.getCol(1)), this.MV(this.getRow(2), m.getCol(2)), this.MV(this.getRow(2), m.getCol(3)),
+			this.MV(this.getRow(3), m.getCol(0)), this.MV(this.getRow(3), m.getCol(1)), this.MV(this.getRow(3), m.getCol(2)), this.MV(this.getRow(3), m.getCol(3))]);
 		return aug;
 	};
 
@@ -151,8 +155,9 @@ function JSMatrix(){
 		return this;
 	};
 
-	JSMatrix.prototype.M4 = function(matrix){ return new Matrix4(matrix); }
+	this.MatrixN = new MatrixN(null);
+	this.Matrix4 = new Matrix4(null);
 
 }
 
-var $M = new JSMatrix();
+var $M = new jsMatrix();
