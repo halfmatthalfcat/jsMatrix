@@ -5,6 +5,8 @@ Small, lightweight Javascript matrix library
 
 This is mainly used for WebGL matrix transformations but will be abstracted out to do matrix math on n-sized matricies
 
+To include in your project: download jsMatrix.js, add it to your root directory or lib/ folder and add the appropriate script tag to your project page.
+
 Create a new Matrix4 identity matrix: `$M.Matrix4;`
 
 The library currently allows you to:
