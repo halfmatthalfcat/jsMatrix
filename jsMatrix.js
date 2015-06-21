@@ -27,19 +27,26 @@ function jsMatrix(){
 		this.getMatrix = function() { return _m; }
 		this.setMatrix = function(m) { _m = m; }
 		this.getDepth = function() { return _d; }
+		this.setDepth = function(d) { _d = d; }
 	};
 
 	MatrixN.prototype.constructor = MatrixN;
+	MatrixN.prototype.Exception = function(message){
+		this.message = message;
+		this.name = "jsMatrixException";
+	};
 
 	MatrixN.prototype.toString = function() { 
-		var d = this.getDepth();
-		var m = this.getMatrix();
-		var s = "\n";
-		for(var i = 0; i < m.length; i++){
-			if((i + 1) % d == 0) { s += m[i] + "\n"; }
-			else { s += m[i] + "\t"; }
-		} 
-		return s;
+		if(this.getDepth() != null){
+			var d = this.getDepth();
+			var m = this.getMatrix();
+			var s = "\n";
+			for(var i = 0; i < m.length; i++){
+				if((i + 1) % d == 0) { s += m[i] + "\n"; }
+				else { s += m[i] + "\t"; }
+			} 
+			return s;
+		} else { return ""; }
 	};
 
 	MatrixN.prototype.getMatrix = function() { return this.getMatrix(); };
@@ -51,12 +58,13 @@ function jsMatrix(){
 		var a = [];
 		var d = this.getDepth();
 		var m = this.getMatrix();
-		if(n > (d - 1)) { throw 'Row ' + n + ' is out of range. Matrix depth: ' + d; }
-		else
-		for(var i = (d * n); i < ((d * n) + d); i++){
-			a.push(m[i]);
+		if(n > (d - 1)) { throw new this.Exception('Row ' + n + ' is out of range. Matrix depth: ' + d); }
+		else {
+			for(var i = (d * n); i < ((d * n) + d); i++){
+				a.push(m[i]);
+			}
+			return a;
 		}
-		return a;
 	};
 
 	//zero based
@@ -108,17 +116,25 @@ function jsMatrix(){
 		return aug;
 	};
 
+	Matrix4.prototype.clamp = function(num){
+		if(num < -1 || num > 1){
+			throw new this.Exception(num + " is out of bounds");
+		}
+	}
+
 	Matrix4.prototype.Translate = function(x, y, z){
 		//TODO: supposidly, WebGL prefers column major, however when setting this up as
 		//column major, WebGL is going freaky...need to investigate further
-		var aug = new Float32Array([
-			1.0, 0.0, 0.0, (x * 1.0),
-			0.0, 1.0, 0.0, (y * 1.0),
-			0.0, 0.0, 1.0, (z * 1.0),
-			0.0, 0.0, 0.0, 1.0
-		]);
-		this.setMatrix(this.MM4(new Matrix4(aug)));
-		return this;
+		try{ 
+			var aug = new Float32Array([
+				1.0, 0.0, 0.0, (this.clamp(x) * 1.0),
+				0.0, 1.0, 0.0, (this.clamp(y) * 1.0),
+				0.0, 0.0, 1.0, (this.clamp(z) * 1.0),
+				0.0, 0.0, 0.0, 1.0
+			]);
+			this.setMatrix(this.MM4(new Matrix4(aug)));
+			return this;
+		} catch (e) { console.log(e.name + ": " + e.message); }
 	};
 
 	Matrix4.prototype.dRotate = function(degree){
@@ -155,9 +171,8 @@ function jsMatrix(){
 		return this;
 	};
 
-	this.MatrixN = new MatrixN(null);
-	this.Matrix4 = new Matrix4(null);
-
+	jsMatrix.prototype.MatrixN = function() { return new MatrixN(null); }
+	jsMatrix.prototype.Matrix4 = function() { return new Matrix4(null); }
 }
 
 var $M = new jsMatrix();
